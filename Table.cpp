@@ -1,5 +1,7 @@
 #include "Table.h"
 
+#include <stdexcept>
+
 // C'tor
 
 Table::Table(BlockDeviceSimulator *blkdevsim, int headerSize) : _blkdevsim(blkdevsim), _headrSize(headerSize)
@@ -46,7 +48,7 @@ inode Table::stringToInode(string str)
     string num;
 
     // Get the blocks of the inode
-    for(; i < str.size(); i++)
+    for(i++; i < str.size(); i++)
     {
         if(str[i] == ',')
         {
@@ -72,14 +74,21 @@ void Table::readInodesFromBlockDevice()
 
     string currInode;
     
-    // Iterates the table as string, and converts it to the vector
-    // of inodes
+    // Iterate the table as string, and convert it to the vector of inodes
     for(char c : table)
     {
         if(c == '~')
         {
             inode node = stringToInode(currInode);
             _inodes.push_back(node);
+
+            // Remove the blocks of the inode from the currently avaliable
+            // blocks in the set
+            for(int block : node.blocks)
+            {
+                _avaliable_blocks.erase(_avaliable_blocks.find(block));
+            }
+
             currInode = "";
         }
         else
@@ -103,7 +112,33 @@ void Table::writeInodesToBlockDevice()
     _blkdevsim->write(_headrSize, TABLE_SIZE, table.c_str());
 }
 
+inode &Table::operator[](string name)
+{
+    for(inode& node : _inodes)
+    {
+        if(node.name == name)
+        {
+            return node;
+        }
+    }
+
+    throw std::runtime_error("Failed to access file");
+}
+
 // PUBLIC METHODS
+
+bool Table::hasName(string name)
+{
+    for(inode node : _inodes)
+    {
+        if(node.name == name)
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
 
 void Table::addInode(string name, bool is_dir)
 {
@@ -117,4 +152,24 @@ void Table::addInode(string name, bool is_dir)
     // Add the inode to the vector and write the vector to the block device
     _inodes.push_back(node);
     writeInodesToBlockDevice();
+}
+
+string Table::getInodeContent(string name)
+{
+    inode node = (*this)[name];
+    string content;
+
+    for(int block : node.blocks)
+    {
+        char* block_content = new char[BLOCK_SIZE];
+
+        // _headerSize + TABLE_SIZE for the address that the memory blocks are starting
+        // and the calculation of the block address is BLOCK_SIZE * block
+        _blkdevsim->read(_headrSize + TABLE_SIZE + BLOCK_SIZE * block, BLOCK_SIZE, block_content);
+        content += block_content;
+
+        delete[] block_content;
+    }
+
+    return content;
 }

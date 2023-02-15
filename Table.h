@@ -29,12 +29,14 @@ private:
     set<int> _avaliable_blocks;
     BlockDeviceSimulator* _blkdevsim;
     const int _headrSize;
+
     // METHODS
 
     string inodeToString(inode node);
     inode stringToInode(string str);
     void readInodesFromBlockDevice();
     void writeInodesToBlockDevice();
+    inode& operator[](string name);
 
 public:
     // C'tor
@@ -42,5 +44,7 @@ public:
 
     // METHODS
 
+    bool hasName(string name);
     void addInode(string name, bool is_dir);
+    string getInodeContent(string name);
 };

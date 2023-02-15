@@ -42,12 +42,16 @@ void MyFs::create_file(std::string path_str, bool directory) {
 		throw std::runtime_error("not implemented");
 	}
 
+	if(_table->hasName(path_str))
+	{
+		throw std::runtime_error("Name already exists");
+	}
+
 	_table->addInode(path_str, directory);
 }
 
 std::string MyFs::get_content(std::string path_str) {
-	throw std::runtime_error("not implemented");
-	return "";
+	return _table->getInodeContent(path_str);
 }
 
 void MyFs::set_content(std::string path_str, std::string content) {
