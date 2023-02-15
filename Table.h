@@ -47,4 +47,5 @@ public:
     bool hasName(string name);
     void addInode(string name, bool is_dir);
     string getInodeContent(string name);
+    void changeInodeContent(string name, string content);
 };

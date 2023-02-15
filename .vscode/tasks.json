@@ -7,7 +7,7 @@
             "args": [
                 "-fdiagnostics-color=always",
                 "-g",
-                "${file}",
+                "myfs_main.cpp",
                 "myfs.cpp",
                 "Table.cpp",
                 "blkdev.cpp",

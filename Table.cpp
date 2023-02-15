@@ -1,6 +1,7 @@
 #include "Table.h"
 
 #include <stdexcept>
+#include <algorithm>
 
 // C'tor
 
@@ -142,6 +143,11 @@ bool Table::hasName(string name)
 
 void Table::addInode(string name, bool is_dir)
 {
+    if(_avaliable_blocks.empty())
+    {
+        throw std::runtime_error("Not enough memory avaliable");
+    }
+
     inode node = {name, is_dir, vector<int>()};
 
     // Add a block from the block device to the inode
@@ -172,4 +178,67 @@ string Table::getInodeContent(string name)
     }
 
     return content;
+}
+
+void Table::changeInodeContent(string name, string content)
+{
+    inode node = (*this)[name];
+    int contentIter = 0;
+
+    // If there are too many blocks for the content
+    // Make some of the blocks avaliable for other memory
+    if((node.blocks.size() - 1) * BLOCK_SIZE > content.size())
+    {
+        // Saves the blocks that are needed for the storage of the content
+        vector<int> neededBlocks;
+
+        // Writes the blocks to the block device
+        for(int i = 0; contentIter >= content.size(); i++)
+        {
+            _blkdevsim->write(_headrSize + TABLE_SIZE + BLOCK_SIZE * node.blocks[i], BLOCK_SIZE, content.c_str() + contentIter);
+            contentIter += BLOCK_SIZE;
+            neededBlocks.push_back(node.blocks[i]);
+        }
+
+        for(int block : node.blocks)
+        {
+            // If the block is not a needed block
+            if(std::find(neededBlocks.begin(), neededBlocks.end(), block) == neededBlocks.end())
+            {
+                // Makes the block avaliable for othre inodes to use
+                _avaliable_blocks.insert(block);
+            }
+        }
+    }
+    else 
+    {
+        // If there are too few blocks for the content
+        // the content requires more avaliable memory block from the block device
+        if(node.blocks.size() * BLOCK_SIZE < content.size())
+        {
+            // Calculates the number of needed blocks for the storage of the content
+            int neededBlocks = content.size() / BLOCK_SIZE;
+            neededBlocks = (content.size() % BLOCK_SIZE == 0) ? neededBlocks : neededBlocks + 1;
+
+            // If there are too few avaliable blocks
+            if(_avaliable_blocks.size() < neededBlocks)
+            {
+                throw std::runtime_error("Not enough memory avaliable");
+            }
+
+            // Take the avaliable blocks to the inode
+            for(int i = 0; i < neededBlocks; i++)
+            {
+                node.blocks.push_back(*(_avaliable_blocks.begin()));
+                _avaliable_blocks.erase(_avaliable_blocks.begin());
+            }
+        }
+
+        // Write the blocks to the block device
+        for(int block : node.blocks)
+        {
+            _blkdevsim->write(_headrSize + TABLE_SIZE + BLOCK_SIZE * block, BLOCK_SIZE, content.c_str() + contentIter);
+            contentIter += BLOCK_SIZE;
+        }
+    }
 }
