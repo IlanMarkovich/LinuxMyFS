@@ -28,7 +28,13 @@ private:
     vector<inode> _inodes;
     set<int> _avaliable_blocks;
     BlockDeviceSimulator* _blkdevsim;
-    const int _startBlockSize;
+    const int _headrSize;
+
+    // METHODS
+
+    char* inodeToCharArr(inode node);
+    inode charArrToInode(char* inode_arr);
+    void readInodesFromBlockDevice();
 
 public:
     // C'tor
