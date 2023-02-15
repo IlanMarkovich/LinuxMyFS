@@ -5,15 +5,18 @@
 Table::Table(BlockDeviceSimulator *blkdevsim, int headerSize) : _blkdevsim(blkdevsim), _headrSize(headerSize)
 {
     // Adds all blocks to the avaliable_blocks set at initialize
-    for(int i = 0; i < TABLE_BLOCKS_SIZE; i++)
+    for(int i = 0; i < BLOCKS_SIZE; i++)
     {
         _avaliable_blocks.insert(i);
     }
+
+    // Initializes the '_inodes' vector with the table written in the block device
+    readInodesFromBlockDevice();
 }
 
 // PRIVATE METHODS
 
-char *Table::inodeToCharArr(inode node)
+string inodeToString(inode node)
 {
     string ret = node.name + ',';
     ret += (node.is_dir ? 'd' : 'f');
@@ -23,12 +26,11 @@ char *Table::inodeToCharArr(inode node)
         ret += std::to_string(block) + ',';
     }
 
-    return ret.c_str();
+    return ret;
 }
 
-inode Table::charArrToInode(char *inode_arr)
+inode stringToInode(string str)
 {
-    string str = inode_arr;
     string name;
     int i = 0;
 
@@ -48,7 +50,7 @@ inode Table::charArrToInode(char *inode_arr)
     {
         if(str[i] == ',')
         {
-            block.push_back(atoi(str[i]));
+            block.push_back(atoi(&str[i]));
             num = "";
         }
         else
@@ -62,7 +64,43 @@ inode Table::charArrToInode(char *inode_arr)
 
 void Table::readInodesFromBlockDevice()
 {
+    // Get the table information from the block device to 'table'
+    char* tableArr = new char[TABLE_SIZE];
+    _blkdevsim->read(_headrSize, TABLE_SIZE, tableArr);
+    string table = tableArr;
+    delete[] tableArr;
 
+    string currInode;
+    
+    // Iterates the table as string, and converts it to the vector
+    // of inodes
+    for(int i = 0; i < table.size() && i != '\0'; i++)
+    {
+        if(table[i] == '~')
+        {
+            inode node = stringToInode(currInode);
+            _inodes.push_back(node);
+            currInode = "";
+        }
+        else
+        {
+            currInode += table[i];
+        }
+    }
+}
+
+void Table::writeInodesToBlockDevice()
+{
+    string table;
+
+    // Writes the inodes as string in the following format:
+    // <name>,<dir><block>,<block>,....<block>,~
+    for(inode node : _inodes)
+    {
+        table += inodeToString(node) + '~';
+    }
+
+    _blkdevsim->write(_headrSize, TABLE_SIZE, table.c_str());
 }
 
 // PUBLIC METHODS
@@ -71,10 +109,12 @@ void Table::addInode(string name, bool is_dir)
 {
     inode node = {name, is_dir, vector<int>()};
 
-    // Add a block of the block device to the inode
+    // Add a block from the block device to the inode
     int block = *(_avaliable_blocks.begin());
     _avaliable_blocks.erase(_avaliable_blocks.begin());
     node.blocks.push_back(block);
 
+    // Add the inode to the vector and write the vector to the block device
     _inodes.push_back(node);
+    writeInodesToBlockDevice();
 }
