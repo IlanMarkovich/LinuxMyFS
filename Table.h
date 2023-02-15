@@ -25,6 +25,7 @@ class Table
 {
 private:
     // FIELDS
+    vector<inode> _inodes;
     set<int> _avaliable_blocks;
     BlockDeviceSimulator* _blkdevsim;
     const int _startBlockSize;
@@ -35,5 +36,5 @@ public:
 
     // METHODS
 
-    void addInode(string name, bool is_dir, char* content);
+    void addInode(string name, bool is_dir);
 };

@@ -37,6 +37,8 @@ void MyFs::create_file(std::string path_str, bool directory) {
 	{
 		throw std::runtime_error("not implemented");
 	}
+
+	_table.addInode(path_str, directory);
 }
 
 std::string MyFs::get_content(std::string path_str) {
