@@ -63,14 +63,16 @@ static void recursive_print(MyFs &myfs, std::string path, std::string prefix="")
 	}
 }
 
-int main(int argc, char **argv) {
+//int argc, char **argv
+int main() {
 
-	if (argc != 2) {
-		std::cerr << "Please provide the file to operate on" << std::endl;
-		return -1;
-	}
+	// if (argc != 2) {
+	// 	std::cerr << "Please provide the file to operate on" << std::endl;
+	// 	return -1;
+	// }
 
-	BlockDeviceSimulator *blkdevptr = new BlockDeviceSimulator(argv[1]);
+															//argv[1]
+	BlockDeviceSimulator *blkdevptr = new BlockDeviceSimulator("block");
 	MyFs myfs(blkdevptr);
 	bool exit = false;
 

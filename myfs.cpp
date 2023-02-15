@@ -34,8 +34,6 @@ void MyFs::format() {
 	strncpy(header.magic, MYFS_MAGIC, sizeof(header.magic));
 	header.version = CURR_VERSION;
 	blkdevsim->write(0, sizeof(header), (const char*)&header);
-
-	// TODO: put your format code here
 }
 
 void MyFs::create_file(std::string path_str, bool directory) {

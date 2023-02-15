@@ -29,7 +29,6 @@ private:
     set<int> _avaliable_blocks;
     BlockDeviceSimulator* _blkdevsim;
     const int _headrSize;
-
     // METHODS
 
     string inodeToString(inode node);

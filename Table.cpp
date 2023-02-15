@@ -16,7 +16,7 @@ Table::Table(BlockDeviceSimulator *blkdevsim, int headerSize) : _blkdevsim(blkde
 
 // PRIVATE METHODS
 
-string inodeToString(inode node)
+string Table::inodeToString(inode node)
 {
     string ret = node.name + ',';
     ret += (node.is_dir ? 'd' : 'f');
@@ -29,7 +29,7 @@ string inodeToString(inode node)
     return ret;
 }
 
-inode stringToInode(string str)
+inode Table::stringToInode(string str)
 {
     string name;
     int i = 0;
@@ -74,9 +74,9 @@ void Table::readInodesFromBlockDevice()
     
     // Iterates the table as string, and converts it to the vector
     // of inodes
-    for(int i = 0; i < table.size() && i != '\0'; i++)
+    for(char c : table)
     {
-        if(table[i] == '~')
+        if(c == '~')
         {
             inode node = stringToInode(currInode);
             _inodes.push_back(node);
@@ -84,7 +84,7 @@ void Table::readInodesFromBlockDevice()
         }
         else
         {
-            currInode += table[i];
+            currInode += c;
         }
     }
 }
