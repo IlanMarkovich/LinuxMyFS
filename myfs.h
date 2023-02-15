@@ -4,7 +4,9 @@
 #include <memory>
 #include <vector>
 #include <stdint.h>
+
 #include "blkdev.h"
+#include "Table.h"
 
 class MyFs {
 public:
@@ -95,6 +97,7 @@ private:
 	};
 
 	BlockDeviceSimulator *blkdevsim;
+	Table table;
 
 	static const uint8_t CURR_VERSION = 0x03;
 	static const char *MYFS_MAGIC;
