@@ -11,6 +11,7 @@
 class MyFs {
 public:
 	MyFs(BlockDeviceSimulator *blkdevsim_);
+	~MyFs();
 
 	/**
 	 * dir_list_entry struct
@@ -97,7 +98,7 @@ private:
 	};
 
 	BlockDeviceSimulator *blkdevsim;
-	Table _table;
+	Table* _table;
 
 	static const uint8_t CURR_VERSION = 0x03;
 	static const char *MYFS_MAGIC;

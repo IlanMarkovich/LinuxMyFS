@@ -32,9 +32,10 @@ private:
 
     // METHODS
 
-    char* inodeToCharArr(inode node);
-    inode charArrToInode(char* inode_arr);
+    string inodeToString(inode node);
+    inode stringToInode(string str);
     void readInodesFromBlockDevice();
+    void writeInodesToBlockDevice();
 
 public:
     // C'tor

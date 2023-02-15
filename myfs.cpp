@@ -6,7 +6,8 @@
 
 const char *MyFs::MYFS_MAGIC = "MYFS";
 
-MyFs::MyFs(BlockDeviceSimulator *blkdevsim_):blkdevsim(blkdevsim_) {
+MyFs::MyFs(BlockDeviceSimulator *blkdevsim_) : blkdevsim(blkdevsim_) 
+{
 	struct myfs_header header;
 	blkdevsim->read(0, sizeof(header), (char *)&header);
 
@@ -18,7 +19,12 @@ MyFs::MyFs(BlockDeviceSimulator *blkdevsim_):blkdevsim(blkdevsim_) {
 		std::cout << "Finished!" << std::endl;
 	}
 
-	table = Table(blkdevsim, sizeof(header));
+	_table = new Table(blkdevsim, sizeof(header));
+}
+
+MyFs::~MyFs()
+{
+	delete _table;
 }
 
 void MyFs::format() {
@@ -38,7 +44,7 @@ void MyFs::create_file(std::string path_str, bool directory) {
 		throw std::runtime_error("not implemented");
 	}
 
-	_table.addInode(path_str, directory);
+	_table->addInode(path_str, directory);
 }
 
 std::string MyFs::get_content(std::string path_str) {
