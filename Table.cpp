@@ -53,7 +53,7 @@ inode Table::stringToInode(string str)
     {
         if(str[i] == ',')
         {
-            block.push_back(atoi(&str[i]));
+            block.push_back(atoi(num.c_str()));
             num = "";
         }
         else
@@ -182,7 +182,7 @@ string Table::getInodeContent(string name)
 
 void Table::changeInodeContent(string name, string content)
 {
-    inode node = (*this)[name];
+    inode& node = (*this)[name];
     int contentIter = 0;
 
     // If there are too many blocks for the content
@@ -193,7 +193,7 @@ void Table::changeInodeContent(string name, string content)
         vector<int> neededBlocks;
 
         // Writes the blocks to the block device
-        for(int i = 0; contentIter >= content.size(); i++)
+        for(int i = 0; contentIter < content.size(); i++)
         {
             _blkdevsim->write(_headrSize + TABLE_SIZE + BLOCK_SIZE * node.blocks[i], BLOCK_SIZE, content.c_str() + contentIter);
             contentIter += BLOCK_SIZE;
@@ -226,8 +226,10 @@ void Table::changeInodeContent(string name, string content)
                 throw std::runtime_error("Not enough memory avaliable");
             }
 
+            int blocksSize = node.blocks.size();
+
             // Take the avaliable blocks to the inode
-            for(int i = 0; i < neededBlocks; i++)
+            for(int i = 0; i < neededBlocks - blocksSize; i++)
             {
                 node.blocks.push_back(*(_avaliable_blocks.begin()));
                 _avaliable_blocks.erase(_avaliable_blocks.begin());
@@ -241,4 +243,7 @@ void Table::changeInodeContent(string name, string content)
             contentIter += BLOCK_SIZE;
         }
     }
+
+    // Updates the block device's table
+    writeInodesToBlockDevice();
 }
