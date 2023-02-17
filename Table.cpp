@@ -17,6 +17,8 @@ Table::Table(BlockDeviceSimulator *blkdevsim, int headerSize) : _blkdevsim(blkde
     readInodesFromBlockDevice();
 }
 
+// GETTERS
+
 vector<inode> Table::getInodes() const
 {
     return _inodes;
@@ -117,7 +119,7 @@ void Table::writeInodesToBlockDevice()
     string table;
 
     // Writes the inodes as string in the following format:
-    // <name>,<dir><block>,<block>,....<block>,~
+    // <name>,<dir><size>,<block>,<block>,....<block>,~
     for(inode node : _inodes)
     {
         table += inodeToString(node) + '~';
@@ -218,7 +220,7 @@ void Table::changeInodeContent(string name, string content)
             // If the block is not a needed block
             if(std::find(neededBlocks.begin(), neededBlocks.end(), block) == neededBlocks.end())
             {
-                // Makes the block avaliable for othre inodes to use
+                // Removes the block from the inode and make the block avaliable for other inodes to use
                 node.blocks.erase(std::find(node.blocks.begin(), node.blocks.end(), block));
                 _avaliable_blocks.insert(block);
             }
@@ -227,7 +229,7 @@ void Table::changeInodeContent(string name, string content)
     else 
     {
         // If there are too few blocks for the content
-        // the content requires more avaliable memory block from the block device
+        // the content requires more avaliable memory blocks from the block device
         if(node.blocks.size() * BLOCK_SIZE < content.size())
         {
             // Calculates the number of needed blocks for the storage of the content
@@ -258,6 +260,7 @@ void Table::changeInodeContent(string name, string content)
         }
     }
 
+    // Update inode's size
     node.size = content.size();
 
     // Updates the block device's table
