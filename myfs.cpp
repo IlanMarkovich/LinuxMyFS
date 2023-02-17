@@ -83,7 +83,11 @@ MyFs::dir_list MyFs::list_dir(std::string path_str) {
 	// Iterate inodes and convert them to dir_list_entry
 	for(Inode inode : inodes)
 	{
+<<<<<<< HEAD
 		MyFs::dir_list_entry entry = {inode.getName(), inode.isDir(), inode.getSize()};
+=======
+		MyFs::dir_list_entry entry = {node.name, false, node.size};
+>>>>>>> parent of 5aa2606 (Revert changes)
 		list.push_back(entry);
 	}
 

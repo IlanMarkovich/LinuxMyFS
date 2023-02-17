@@ -15,6 +15,16 @@ using std::string;
 using std::vector;
 using std::set;
 
+<<<<<<< HEAD
+=======
+struct inode
+{
+    string name;
+    int size;
+    vector<int> blocks;
+};
+
+>>>>>>> parent of 5aa2606 (Revert changes)
 class Table
 {
 private:

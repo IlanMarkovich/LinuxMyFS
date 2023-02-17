@@ -26,6 +26,60 @@ vector<Inode> Table::getInodes() const
 
 // PRIVATE METHODS
 
+<<<<<<< HEAD
+=======
+string Table::inodeToString(inode node)
+{
+    string ret = node.name + ',';
+    ret += std::to_string(node.size) + ',';
+    
+    for(int block : node.blocks)
+    {
+        ret += std::to_string(block) + ',';
+    }
+
+    return ret;
+}
+
+inode Table::stringToInode(string str)
+{
+    string name;
+    int i = 0;
+
+    // Read name of inode
+    for(; str[i] != ','; i++)
+    {
+        name += str[i];
+    }
+
+    string size;
+
+    for(i++; str[i] != ','; i++)
+    {
+        size += str[i];
+    }
+
+    vector<int> block;
+    string num;
+
+    // Get the blocks of the inode
+    for(i++; i < str.size(); i++)
+    {
+        if(str[i] == ',')
+        {
+            block.push_back(atoi(num.c_str()));
+            num = "";
+        }
+        else
+        {
+            num += str[i];
+        }
+    }
+
+    return (inode){name, atoi(size.c_str()), block};
+}
+
+>>>>>>> parent of 5aa2606 (Revert changes)
 void Table::readInodesFromBlockDevice()
 {
     // Get the table information from the block device to 'table'
@@ -159,7 +213,11 @@ void Table::addInode(string path, bool is_dir)
         throw std::runtime_error("Not enough memory avaliable");
     }
 
+<<<<<<< HEAD
     Inode inode(path, 0, is_dir);
+=======
+    inode node = {name, 0, vector<int>()};
+>>>>>>> parent of 5aa2606 (Revert changes)
 
     // Add a block from the block device to the inode
     int block = *(_avaliable_blocks.begin());
