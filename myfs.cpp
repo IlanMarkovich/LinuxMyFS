@@ -82,7 +82,7 @@ MyFs::dir_list MyFs::list_dir(std::string path_str) {
 
 	for(inode node : inodes)
 	{
-		MyFs::dir_list_entry entry = {node.name, node.is_dir, 0};
+		MyFs::dir_list_entry entry = {node.name, node.is_dir, node.size};
 		list.push_back(entry);
 	}
 
