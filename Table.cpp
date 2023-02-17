@@ -5,7 +5,7 @@
 
 // C'tor
 
-Table::Table(BlockDeviceSimulator *blkdevsim, int headerSize) : _blkdevsim(blkdevsim), _headerSize(headerSize)
+Table::Table(BlockDeviceSimulator *blkdevsim, int headerSize) : _blkdevsim(blkdevsim), _headrSize(headerSize)
 {
     // Adds all blocks to the avaliable_blocks set at initialize
     for(int i = 0; i < BLOCKS_SIZE; i++)
@@ -19,15 +19,13 @@ Table::Table(BlockDeviceSimulator *blkdevsim, int headerSize) : _blkdevsim(blkde
 
 // GETTERS
 
-vector<Inode> Table::getInodes() const
+vector<inode> Table::getInodes() const
 {
     return _inodes;
 }
 
 // PRIVATE METHODS
 
-<<<<<<< HEAD
-=======
 string Table::inodeToString(inode node)
 {
     string ret = node.name + ',';
@@ -79,12 +77,11 @@ inode Table::stringToInode(string str)
     return (inode){name, atoi(size.c_str()), block};
 }
 
->>>>>>> parent of 5aa2606 (Revert changes)
 void Table::readInodesFromBlockDevice()
 {
     // Get the table information from the block device to 'table'
     char* tableArr = new char[TABLE_SIZE];
-    _blkdevsim->read(_headerSize, TABLE_SIZE, tableArr);
+    _blkdevsim->read(_headrSize, TABLE_SIZE, tableArr);
     string table = tableArr;
     delete[] tableArr;
 
@@ -95,12 +92,12 @@ void Table::readInodesFromBlockDevice()
     {
         if(c == '~')
         {
-            Inode inode = currInode;
-            _inodes.push_back(inode);
+            inode node = stringToInode(currInode);
+            _inodes.push_back(node);
 
             // Remove the blocks of the inode from the currently avaliable
             // blocks in the set
-            for(int block : inode.getStorage())
+            for(int block : node.blocks)
             {
                 _avaliable_blocks.erase(_avaliable_blocks.find(block));
             }
@@ -120,84 +117,34 @@ void Table::writeInodesToBlockDevice()
 
     // Writes the inodes as string in the following format:
     // <name>,<dir><size>,<block>,<block>,....<block>,~
-    for(Inode inode : _inodes)
+    for(inode node : _inodes)
     {
-        table += (string)inode + '~';
+        table += inodeToString(node) + '~';
     }
 
-    _blkdevsim->write(_headerSize, TABLE_SIZE, table.c_str());
+    _blkdevsim->write(_headrSize, TABLE_SIZE, table.c_str());
 }
 
-vector<Inode>& Table::getFolderInodes(Inode inode)
+inode &Table::operator[](string name)
 {
-    vector<Inode> folderInodes;
-
-    for(int inodeId : inode.getStorage())
+    for(inode& node : _inodes)
     {
-        folderInodes.push_back(_inodes[inodeId]);
-    }
-
-    return folderInodes;
-}
-
-Inode &Table::getInodeFromFolder(string path, vector<Inode>& inodes)
-{
-    // Trim '/'
-    path = path.substr(1, path.size());
-
-    if(std::count(path.begin(), path.end(), '/') != 0)
-    {
-        // Get the current folder
-        string folder;
-        std::copy(path.begin(), std::find(path.begin(), path.end(), '/'), folder.begin());
-
-        for(Inode inode : inodes)
+        if(node.name == name)
         {
-            if(inode.isDir() && inode.getName() == folder)
-            {
-                return getInodeFromFolder(path.substr(folder.size(), path.size()), getFolderInodes(inode));
-            }
-        }
-    }
-    else
-    {
-        for(Inode& inode : inodes)
-        {
-            if(!inode.isDir() && inode.getName() == path)
-            {
-                return inode;
-            }
+            return node;
         }
     }
 
     throw std::runtime_error("Failed to access file");
 }
 
-Inode &Table::operator[](string path)
-{
-    // If this is a direct file in the home folder
-    // Access it here
-    if(path[0] != '/')
-    {
-        for(Inode inode : _inodes)
-        {
-            if(inode.getName() == path)
-            {
-                return inode;
-            }
-        }
-    }
-
-    return getInodeFromFolder(path, _inodes); 
-}
-
 // PUBLIC METHODS
 
 bool Table::hasName(string name)
 {
-    for(Inode inode : _inodes)
+    for(inode node : _inodes)
     {
-        if(inode.getName() == name)
+        if(node.name == name)
         {
             return true;
         }
@@ -206,51 +153,37 @@ bool Table::hasName(string name)
     return false;
 }
 
-void Table::addInode(string path, bool is_dir)
+void Table::addInode(string name, bool is_dir)
 {
     if(_avaliable_blocks.empty())
     {
         throw std::runtime_error("Not enough memory avaliable");
     }
 
-<<<<<<< HEAD
-    Inode inode(path, 0, is_dir);
-=======
     inode node = {name, 0, vector<int>()};
->>>>>>> parent of 5aa2606 (Revert changes)
 
     // Add a block from the block device to the inode
     int block = *(_avaliable_blocks.begin());
     _avaliable_blocks.erase(_avaliable_blocks.begin());
-    inode.add(block);
-
-    // Find the last slash in the string
-    string slash = "/";
-    auto slash_iter = std::find_end(path.begin(), path.end(), slash.begin(), slash.end());
-
-    // Remove the file/directory name from the path
-    std::copy(path.begin(), slash_iter, path.begin());
-
-    Inode direcory_inode = (*this)[path];
-    direcory_inode.add(inode.)
+    node.blocks.push_back(block);
 
     // Add the inode to the vector and write the vector to the block device
-    _inodes.push_back(inode);
+    _inodes.push_back(node);
     writeInodesToBlockDevice();
 }
 
 string Table::getInodeContent(string name)
 {
-    Inode inode = (*this)[name];
+    inode node = (*this)[name];
     string content;
 
-    for(int block : inode.getStorage())
+    for(int block : node.blocks)
     {
         char* block_content = new char[BLOCK_SIZE];
 
         // _headerSize + TABLE_SIZE for the address that the memory blocks are starting
         // and the calculation of the block address is BLOCK_SIZE * block
-        _blkdevsim->read(_headerSize + TABLE_SIZE + BLOCK_SIZE * block, BLOCK_SIZE, block_content);
+        _blkdevsim->read(_headrSize + TABLE_SIZE + BLOCK_SIZE * block, BLOCK_SIZE, block_content);
         content += block_content;
 
         delete[] block_content;
@@ -261,12 +194,12 @@ string Table::getInodeContent(string name)
 
 void Table::changeInodeContent(string name, string content)
 {
-    Inode& inode = (*this)[name];
+    inode& node = (*this)[name];
     int contentIter = 0;
 
     // If there are too many blocks for the content
     // Make some of the blocks avaliable for other memory
-    if((inode.getStorage().size() - 1) * BLOCK_SIZE > content.size())
+    if((node.blocks.size() - 1) * BLOCK_SIZE > content.size())
     {
         // Saves the blocks that are needed for the storage of the content
         vector<int> neededBlocks;
@@ -274,18 +207,18 @@ void Table::changeInodeContent(string name, string content)
         // Writes the blocks to the block device
         for(int i = 0; contentIter < content.size(); i++)
         {
-            _blkdevsim->write(_headerSize + TABLE_SIZE + BLOCK_SIZE * inode[i], BLOCK_SIZE, content.c_str() + contentIter);
+            _blkdevsim->write(_headrSize + TABLE_SIZE + BLOCK_SIZE * node.blocks[i], BLOCK_SIZE, content.c_str() + contentIter);
             contentIter += BLOCK_SIZE;
-            neededBlocks.push_back(inode[i]);
+            neededBlocks.push_back(node.blocks[i]);
         }
 
-        for(int block : inode.getStorage())
+        for(int block : node.blocks)
         {
             // If the block is not a needed block
             if(std::find(neededBlocks.begin(), neededBlocks.end(), block) == neededBlocks.end())
             {
                 // Removes the block from the inode and make the block avaliable for other inodes to use
-                inode.remove(block);
+                node.blocks.erase(std::find(node.blocks.begin(), node.blocks.end(), block));
                 _avaliable_blocks.insert(block);
             }
         }
@@ -294,7 +227,7 @@ void Table::changeInodeContent(string name, string content)
     {
         // If there are too few blocks for the content
         // the content requires more avaliable memory blocks from the block device
-        if(inode.getStorage().size() * BLOCK_SIZE < content.size())
+        if(node.blocks.size() * BLOCK_SIZE < content.size())
         {
             // Calculates the number of needed blocks for the storage of the content
             int neededBlocks = content.size() / BLOCK_SIZE;
@@ -306,26 +239,26 @@ void Table::changeInodeContent(string name, string content)
                 throw std::runtime_error("Not enough memory avaliable");
             }
 
-            int blocksSize = inode.getStorage().size();
+            int blocksSize = node.blocks.size();
 
             // Take the avaliable blocks to the inode
             for(int i = 0; i < neededBlocks - blocksSize; i++)
             {
-                inode.add(*(_avaliable_blocks.begin()));
+                node.blocks.push_back(*(_avaliable_blocks.begin()));
                 _avaliable_blocks.erase(_avaliable_blocks.begin());
             }
         }
 
         // Write the blocks to the block device
-        for(int block : inode.getStorage())
+        for(int block : node.blocks)
         {
-            _blkdevsim->write(_headerSize + TABLE_SIZE + BLOCK_SIZE * block, BLOCK_SIZE, content.c_str() + contentIter);
+            _blkdevsim->write(_headrSize + TABLE_SIZE + BLOCK_SIZE * block, BLOCK_SIZE, content.c_str() + contentIter);
             contentIter += BLOCK_SIZE;
         }
     }
 
     // Update inode's size
-    inode.setSize(content.size());
+    node.size = content.size();
 
     // Updates the block device's table
     writeInodesToBlockDevice();

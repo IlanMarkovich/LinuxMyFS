@@ -7,7 +7,6 @@
 
 #include "blkdev.h"
 #include "Table.h"
-#include "Inode.h"
 
 class MyFs {
 public:
