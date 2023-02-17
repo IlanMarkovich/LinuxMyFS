@@ -206,6 +206,7 @@ void Table::changeInodeContent(string name, string content)
             if(std::find(neededBlocks.begin(), neededBlocks.end(), block) == neededBlocks.end())
             {
                 // Makes the block avaliable for othre inodes to use
+                node.blocks.erase(std::find(node.blocks.begin(), node.blocks.end(), block));
                 _avaliable_blocks.insert(block);
             }
         }
