@@ -17,7 +17,6 @@ using std::set;
 struct inode
 {
     string name;
-    bool is_dir;
     int size;
     vector<int> blocks;
 };

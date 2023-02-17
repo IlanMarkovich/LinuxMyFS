@@ -80,9 +80,10 @@ MyFs::dir_list MyFs::list_dir(std::string path_str) {
 	vector<inode> inodes = _table->getInodes();
 	MyFs::dir_list list;
 
+	// Iterate inodes and convert them to dir_list_entry
 	for(inode node : inodes)
 	{
-		MyFs::dir_list_entry entry = {node.name, node.is_dir, node.size};
+		MyFs::dir_list_entry entry = {node.name, false, node.size};
 		list.push_back(entry);
 	}
 
