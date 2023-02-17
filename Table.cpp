@@ -17,6 +17,11 @@ Table::Table(BlockDeviceSimulator *blkdevsim, int headerSize) : _blkdevsim(blkde
     readInodesFromBlockDevice();
 }
 
+vector<inode> Table::getInodes() const
+{
+    return _inodes;
+}
+
 // PRIVATE METHODS
 
 string Table::inodeToString(inode node)

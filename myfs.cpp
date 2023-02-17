@@ -72,8 +72,19 @@ void MyFs::set_content(std::string path_str, std::string content) {
 }
 
 MyFs::dir_list MyFs::list_dir(std::string path_str) {
-	dir_list ans;
-	throw std::runtime_error("not implemented");
-	return ans;
-}
+	if(path_str != "/")
+	{
+		throw std::runtime_error("not implemented");
+	}
 
+	vector<inode> inodes = _table->getInodes();
+	MyFs::dir_list list;
+
+	for(inode node : inodes)
+	{
+		MyFs::dir_list_entry entry = {node.name, node.is_dir, 0};
+		list.push_back(entry);
+	}
+
+	return list;
+}

@@ -42,6 +42,10 @@ public:
     // C'tor
     Table(BlockDeviceSimulator* blkdevsim, int headerSize);
 
+    // GETTERS
+
+    vector<inode> getInodes() const;
+
     // METHODS
 
     bool hasName(string name);
