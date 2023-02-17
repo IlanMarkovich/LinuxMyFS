@@ -48,7 +48,7 @@ void MyFs::create_file(std::string path_str, bool directory) {
 		throw std::runtime_error("Name already exists");
 	}
 
-	_table->addInode(path_str, directory);
+	_table->addFileInode(path_str);
 }
 
 std::string MyFs::get_content(std::string path_str) {
@@ -77,13 +77,13 @@ MyFs::dir_list MyFs::list_dir(std::string path_str) {
 		throw std::runtime_error("not implemented");
 	}
 
-	vector<Inode*> inodes = _table->getInodes();
+	vector<Inode> inodes = _table->getInodes();
 	MyFs::dir_list list;
 
 	// Iterate inodes and convert them to dir_list_entry
-	for(Inode* inode : inodes)
+	for(Inode inode : inodes)
 	{
-		MyFs::dir_list_entry entry = {inode->getName(), false, inode->getSize()};
+		MyFs::dir_list_entry entry = {inode.getName(), inode.isDir(), inode.getSize()};
 		list.push_back(entry);
 	}
 

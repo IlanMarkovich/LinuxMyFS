@@ -1,27 +1,33 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 using std::string;
+using std::vector;
 
 class Inode
 {
-protected:
+private:
     // FIELDS
 
     string _name;
     int _size;
+    vector<int> _storage;
+    bool _is_dir;
 
 public:
     // C'tor
 
-    Inode();
-    Inode(string name, int size);
+    Inode(string str);
+    Inode(string name, int size, bool is_dir);
 
     // GETTERS
 
     string getName() const;
     int getSize() const;
+    bool isDir() const;
+    vector<int> getStorage() const;
 
     // SETTERS
 
@@ -29,11 +35,11 @@ public:
 
     // OPERATOR
 
-    virtual operator string() = 0;
-    virtual int operator[](int index) = 0;
+    operator string();
+    int operator[](int index);
 
     // METHODS
 
-    virtual void add(int index) = 0;
-    virtual void remove(int index) = 0;
+    void add(int element);
+    void remove(int element);
 };
