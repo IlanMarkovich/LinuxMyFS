@@ -120,7 +120,7 @@ int main() {
 				else
 					std::cout << CONTENT_CMD << ": file path requested" << std::endl;
 			} else if (cmd[0] == TREE_CMD) {
-				recursive_print(myfs, "");
+				recursive_print(myfs, "/");
 			} else if (cmd[0] == EDIT_CMD) {
 				if (cmd.size() == 2) {
 					std::cout << "Enter new file content" << std::endl;

@@ -29,6 +29,7 @@ vector<inode> Table::getInodes() const
 string Table::inodeToString(inode node)
 {
     string ret = node.name + ',';
+    ret += (node.is_dir ? 'd' : 'f');
     ret += std::to_string(node.size) + ',';
     
     for(int block : node.blocks)
@@ -50,6 +51,8 @@ inode Table::stringToInode(string str)
         name += str[i];
     }
 
+    // Get if the inode represents a directory or a file
+    bool dir = str[++i] == 'd';
     string size;
 
     for(i++; str[i] != ','; i++)
@@ -74,7 +77,7 @@ inode Table::stringToInode(string str)
         }
     }
 
-    return (inode){name, atoi(size.c_str()), block};
+    return (inode){name, dir, atoi(size.c_str()), block};
 }
 
 void Table::readInodesFromBlockDevice()
@@ -160,7 +163,7 @@ void Table::addInode(string name, bool is_dir)
         throw std::runtime_error("Not enough memory avaliable");
     }
 
-    inode node = {name, 0, vector<int>()};
+    inode node = {name, is_dir, 0, vector<int>()};
 
     // Add a block from the block device to the inode
     int block = *(_avaliable_blocks.begin());

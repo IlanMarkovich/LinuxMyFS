@@ -83,7 +83,7 @@ MyFs::dir_list MyFs::list_dir(std::string path_str) {
 	// Iterate inodes and convert them to dir_list_entry
 	for(inode node : inodes)
 	{
-		MyFs::dir_list_entry entry = {node.name, false, node.size};
+		MyFs::dir_list_entry entry = {node.name, node.is_dir, node.size};
 		list.push_back(entry);
 	}
 
