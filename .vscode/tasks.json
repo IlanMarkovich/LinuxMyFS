@@ -11,6 +11,8 @@
                 "myfs.cpp",
                 "Table.cpp",
                 "blkdev.cpp",
+                "Inode.cpp",
+                "FileInode.cpp",
                 "-o",
                 "${fileDirname}/${fileBasenameNoExtension}",
             ],

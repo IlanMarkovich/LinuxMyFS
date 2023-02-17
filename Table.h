@@ -5,6 +5,8 @@
 #include <set>
 
 #include "blkdev.h"
+#include "Inode.h"
+#include "FileInode.h"
 
 #define TABLE_SIZE 1024
 #define BLOCK_SIZE 128
@@ -14,38 +16,31 @@ using std::string;
 using std::vector;
 using std::set;
 
-struct inode
-{
-    string name;
-    bool is_dir;
-    int size;
-    vector<int> blocks;
-};
-
 class Table
 {
 private:
     // FIELDS
-    vector<inode> _inodes;
+    vector<Inode*> _inodes;
     set<int> _avaliable_blocks;
     BlockDeviceSimulator* _blkdevsim;
     const int _headrSize;
 
     // METHODS
 
-    string inodeToString(inode node);
-    inode stringToInode(string str);
     void readInodesFromBlockDevice();
     void writeInodesToBlockDevice();
-    inode& operator[](string name);
+    Inode* operator[](string name);
 
 public:
     // C'tor
     Table(BlockDeviceSimulator* blkdevsim, int headerSize);
 
+    // D'tor
+    ~Table();
+
     // GETTERS
 
-    vector<inode> getInodes() const;
+    vector<Inode*> getInodes() const;
 
     // METHODS
 

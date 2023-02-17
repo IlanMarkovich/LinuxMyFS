@@ -77,13 +77,13 @@ MyFs::dir_list MyFs::list_dir(std::string path_str) {
 		throw std::runtime_error("not implemented");
 	}
 
-	vector<inode> inodes = _table->getInodes();
+	vector<Inode*> inodes = _table->getInodes();
 	MyFs::dir_list list;
 
 	// Iterate inodes and convert them to dir_list_entry
-	for(inode node : inodes)
+	for(Inode* inode : inodes)
 	{
-		MyFs::dir_list_entry entry = {node.name, node.is_dir, node.size};
+		MyFs::dir_list_entry entry = {inode->getName(), false, inode->getSize()};
 		list.push_back(entry);
 	}
 
