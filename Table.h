@@ -22,13 +22,18 @@ private:
     vector<Inode> _inodes;
     set<int> _avaliable_blocks;
     BlockDeviceSimulator* _blkdevsim;
-    const int _headrSize;
+    const int _headerSize;
 
     // METHODS
 
     void readInodesFromBlockDevice();
     void writeInodesToBlockDevice();
-    Inode& operator[](string name);
+    vector<Inode>& getFolderInodes(Inode inode);
+    Inode& getInodeFromFolder(string path, vector<Inode>& inodes);
+
+    // OPERATOR
+
+    Inode& operator[](string path);
 
 public:
     // C'tor
@@ -41,7 +46,7 @@ public:
     // METHODS
 
     bool hasName(string name);
-    void addFileInode(string name);
+    void addInode(string path, bool is_dir);
     string getInodeContent(string name);
     void changeInodeContent(string name, string content);
 };

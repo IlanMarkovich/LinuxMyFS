@@ -5,7 +5,7 @@
 
 // C'tor
 
-Table::Table(BlockDeviceSimulator *blkdevsim, int headerSize) : _blkdevsim(blkdevsim), _headrSize(headerSize)
+Table::Table(BlockDeviceSimulator *blkdevsim, int headerSize) : _blkdevsim(blkdevsim), _headerSize(headerSize)
 {
     // Adds all blocks to the avaliable_blocks set at initialize
     for(int i = 0; i < BLOCKS_SIZE; i++)
@@ -30,7 +30,7 @@ void Table::readInodesFromBlockDevice()
 {
     // Get the table information from the block device to 'table'
     char* tableArr = new char[TABLE_SIZE];
-    _blkdevsim->read(_headrSize, TABLE_SIZE, tableArr);
+    _blkdevsim->read(_headerSize, TABLE_SIZE, tableArr);
     string table = tableArr;
     delete[] tableArr;
 
@@ -65,26 +65,76 @@ void Table::writeInodesToBlockDevice()
     string table;
 
     // Writes the inodes as string in the following format:
-    // <name>,<size>,<block>,<block>,....<block>,~
+    // <name>,<dir><size>,<block>,<block>,....<block>,~
     for(Inode inode : _inodes)
     {
         table += (string)inode + '~';
     }
 
-    _blkdevsim->write(_headrSize, TABLE_SIZE, table.c_str());
+    _blkdevsim->write(_headerSize, TABLE_SIZE, table.c_str());
 }
 
-Inode& Table::operator[](string name)
+vector<Inode>& Table::getFolderInodes(Inode inode)
 {
-    for(Inode& inode : _inodes)
+    vector<Inode> folderInodes;
+
+    for(int inodeId : inode.getStorage())
     {
-        if(inode.getName() == name)
+        folderInodes.push_back(_inodes[inodeId]);
+    }
+
+    return folderInodes;
+}
+
+Inode &Table::getInodeFromFolder(string path, vector<Inode>& inodes)
+{
+    // Trim '/'
+    path = path.substr(1, path.size());
+
+    if(std::count(path.begin(), path.end(), '/') != 0)
+    {
+        // Get the current folder
+        string folder;
+        std::copy(path.begin(), std::find(path.begin(), path.end(), '/'), folder.begin());
+
+        for(Inode inode : inodes)
         {
-            return inode;
+            if(inode.isDir() && inode.getName() == folder)
+            {
+                return getInodeFromFolder(path.substr(folder.size(), path.size()), getFolderInodes(inode));
+            }
+        }
+    }
+    else
+    {
+        for(Inode& inode : inodes)
+        {
+            if(!inode.isDir() && inode.getName() == path)
+            {
+                return inode;
+            }
         }
     }
 
     throw std::runtime_error("Failed to access file");
+}
+
+Inode &Table::operator[](string path)
+{
+    // If this is a direct file in the home folder
+    // Access it here
+    if(path[0] != '/')
+    {
+        for(Inode inode : _inodes)
+        {
+            if(inode.getName() == path)
+            {
+                return inode;
+            }
+        }
+    }
+
+    return getInodeFromFolder(path, _inodes); 
 }
 
 // PUBLIC METHODS
@@ -102,19 +152,29 @@ bool Table::hasName(string name)
     return false;
 }
 
-void Table::addFileInode(string name)
+void Table::addInode(string path, bool is_dir)
 {
     if(_avaliable_blocks.empty())
     {
         throw std::runtime_error("Not enough memory avaliable");
     }
 
-    Inode inode(name, 0, false);
+    Inode inode(path, 0, is_dir);
 
     // Add a block from the block device to the inode
     int block = *(_avaliable_blocks.begin());
     _avaliable_blocks.erase(_avaliable_blocks.begin());
     inode.add(block);
+
+    // Find the last slash in the string
+    string slash = "/";
+    auto slash_iter = std::find_end(path.begin(), path.end(), slash.begin(), slash.end());
+
+    // Remove the file/directory name from the path
+    std::copy(path.begin(), slash_iter, path.begin());
+
+    Inode direcory_inode = (*this)[path];
+    direcory_inode.add(inode.)
 
     // Add the inode to the vector and write the vector to the block device
     _inodes.push_back(inode);
@@ -132,7 +192,7 @@ string Table::getInodeContent(string name)
 
         // _headerSize + TABLE_SIZE for the address that the memory blocks are starting
         // and the calculation of the block address is BLOCK_SIZE * block
-        _blkdevsim->read(_headrSize + TABLE_SIZE + BLOCK_SIZE * block, BLOCK_SIZE, block_content);
+        _blkdevsim->read(_headerSize + TABLE_SIZE + BLOCK_SIZE * block, BLOCK_SIZE, block_content);
         content += block_content;
 
         delete[] block_content;
@@ -156,7 +216,7 @@ void Table::changeInodeContent(string name, string content)
         // Writes the blocks to the block device
         for(int i = 0; contentIter < content.size(); i++)
         {
-            _blkdevsim->write(_headrSize + TABLE_SIZE + BLOCK_SIZE * inode[i], BLOCK_SIZE, content.c_str() + contentIter);
+            _blkdevsim->write(_headerSize + TABLE_SIZE + BLOCK_SIZE * inode[i], BLOCK_SIZE, content.c_str() + contentIter);
             contentIter += BLOCK_SIZE;
             neededBlocks.push_back(inode[i]);
         }
@@ -201,7 +261,7 @@ void Table::changeInodeContent(string name, string content)
         // Write the blocks to the block device
         for(int block : inode.getStorage())
         {
-            _blkdevsim->write(_headrSize + TABLE_SIZE + BLOCK_SIZE * block, BLOCK_SIZE, content.c_str() + contentIter);
+            _blkdevsim->write(_headerSize + TABLE_SIZE + BLOCK_SIZE * block, BLOCK_SIZE, content.c_str() + contentIter);
             contentIter += BLOCK_SIZE;
         }
     }
