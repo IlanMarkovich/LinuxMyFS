@@ -42,32 +42,14 @@ void MyFs::create_file(std::string path_str, bool directory) {
 		throw std::runtime_error("not implemented");
 	}
 
-	// Check if the file already exists
-	if(_table->hasName(path_str))
-	{
-		throw std::runtime_error("Name already exists");
-	}
-
-	_table->addInode(path_str, directory);
+	_table->addInode(path_str);
 }
 
 std::string MyFs::get_content(std::string path_str) {
-	// Check if the file doesn't exists
-	if(!_table->hasName(path_str))
-	{
-		throw std::runtime_error("Couldn't find file!");
-	}
-
 	return _table->getInodeContent(path_str);
 }
 
 void MyFs::set_content(std::string path_str, std::string content) {
-	// Check if the file doesn't exists
-	if(!_table->hasName(path_str))
-	{
-		throw std::runtime_error("Couldn't find file!");
-	}
-
 	return _table->changeInodeContent(path_str, content);
 }
 
@@ -77,13 +59,12 @@ MyFs::dir_list MyFs::list_dir(std::string path_str) {
 		throw std::runtime_error("not implemented");
 	}
 
-	vector<inode> inodes = _table->getInodes();
 	MyFs::dir_list list;
 
 	// Iterate inodes and convert them to dir_list_entry
-	for(inode node : inodes)
+	for(Inode inode : _table->getInodes())
 	{
-		MyFs::dir_list_entry entry = {node.name, false, node.size};
+		MyFs::dir_list_entry entry = {inode.getName(), false, inode.getSize()};
 		list.push_back(entry);
 	}
 
