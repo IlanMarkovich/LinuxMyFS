@@ -70,6 +70,9 @@ void Inode::setSize(int size)
 
 // OPERATORS
 
+// This method convert the inode to string
+// in the following format:
+// <name>,<size>,<block>,<block>,....<block>,
 Inode::operator string()
 {
     string str = _name + ",";

@@ -24,6 +24,8 @@ vector<Inode> Table::getInodes() const
     return _inodes;
 }
 
+// PRIVATE METHODS
+
 void Table::readInodesFromBlockDevice()
 {
     // Get the table information from the block device to 'table'
@@ -62,8 +64,8 @@ void Table::writeInodesToBlockDevice()
 {
     string table;
 
-    // Writes the inodes as string in the following format:
-    // <name>,<dir><size>,<block>,<block>,....<block>,~
+    // Writes the table in the following format:
+    // <inode>~<inode>~.......<inode>~
     for(Inode inode : _inodes)
     {
         table += (string)inode + '~';
@@ -94,16 +96,32 @@ void Table::addInode(string name)
         throw std::runtime_error("Not enough memory avaliable");
     }
 
-    Inode inode(name, 0);
+    try
+    {
+        // If an exception will be thrown here it means there is no inodes with the given name
+        // Which means the method will continue
+        (*this)[name];
+    }
+    catch(const std::exception& e)
+    {
+        // If the code reaches here there is no inode with the given name
+        // Which means the method will add a new inode
+        Inode inode(name, 0);
 
-    // Add a block from the block device to the inode
-    int block = *(_avaliable_blocks.begin());
-    _avaliable_blocks.erase(_avaliable_blocks.begin());
-    inode.add(block);
+        // Add a block from the block device to the inode
+        int block = *(_avaliable_blocks.begin());
+        _avaliable_blocks.erase(_avaliable_blocks.begin());
+        inode.add(block);
 
-    // Add the inode to the vector and write the vector to the block device
-    _inodes.push_back(inode);
-    writeInodesToBlockDevice();
+        // Add the inode to the vector and write the vector to the block device
+        _inodes.push_back(inode);
+        writeInodesToBlockDevice();   
+        return;
+    }
+
+    // If the code reaches here it means that a file with that name already exists
+    // And for that, the code will throw an exception here
+    throw std::runtime_error("A file with that name already exists");
 }
 
 string Table::getInodeContent(string name)
